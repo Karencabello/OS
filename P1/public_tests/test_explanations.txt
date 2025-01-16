@@ -1,0 +1,23 @@
+Test 0: Convert from binary to text
+Usage:
+./convert -binary test_0.dat test_0.ext
+Expected output:
+test_0.out should be equal to sol_test1.txt
+
+Test 1: Modify an integer (text)
+Usage:
+./modify_int -text test_1.txt 2 123
+Expected output:
+test_1.txt should be equal to sol_test2.txt
+
+Test 2: Modify an integer (text)
+Usage:
+./modify_int -text test_1.txt 2 2315
+Expected output:
+test_2.txt should be equal to sol_test2.txt
+
+Test 3:  Modify an integer (binary)
+Usage:
+./modify_int -binary test3.dat modify 4 1634755712
+Expected output:
+test3.dat should be equal to sol_test3.dat
