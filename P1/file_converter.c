@@ -119,7 +119,7 @@ int main(int argc, char* argv[]){
     if(strcmp(type,"-binary") == 0){
         conversion = convert2text(path , newpath);
     }
-    if(strcmp(type,"-text") == 0){
+    else if(strcmp(type,"-text") == 0){
         conversion = convert2bin(path , newpath);
     } 
     else{
