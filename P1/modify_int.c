@@ -62,7 +62,7 @@ void bytesAndLengthOld(int fd, int position, char newVal[], int* bytesUntilpos, 
                 *bytesUntilpos = bytes;
             }
             else if(found){
-                *digitsOld++;
+                (*digitsOld)++;
             }
         }
     }
