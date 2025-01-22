@@ -25,6 +25,7 @@ certain length*/
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 void modifyFbinary(int fd, int position, int new_value) {
     // int lseek(int fd, int offset, SEEK_SET/SEEK_CUR/SEEK_END)
@@ -107,7 +108,7 @@ int main(int argc, char* argv[]) {
 
     // READ CLI ARGUMENTS
     // 1) the file is in binary or txt
-    char fileType[] = argv[1];
+    char* fileType = argv[1];
     // 2) the input file
     char* filename = argv[2];
     // 3) new position
@@ -116,7 +117,7 @@ int main(int argc, char* argv[]) {
     // 4) value to substitute
     int new_val;
     sscanf(argv[4], "%d", &new_val); // use sscanf to convert from string to intefer
-    char newVal[] = argv[4];          // maintain it as a string
+    char* newVal = argv[4];          // maintain it as a string
 
     // OPEN FILE
     int fd = open(filename, O_RDWR | O_CREAT, 0644);
