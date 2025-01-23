@@ -27,18 +27,19 @@ int convert2text(char *path , char *newpath){
 
 
     unsigned char buffer;
-    char comma = ',';
+    int first = 1;  // controlar si es el primer número
     char num[12]; 
     while(read(fbin, &buffer, sizeof(buffer)) == sizeof(buffer)){
-        //quan \0 cambiem per , i escrivim  
-        if(buffer == '\0'){
+        if (!first){
+            // Escribimos una coma antes de cada número (excepto el primero)
+            char comma = ',';
             write(ftext, &comma, sizeof(comma));
-        }
-        else{
-            sprintf(num, "%u", buffer);  // Convierte el número a cadena
-            write(ftext, num, strlen(num));
-        }
-    }  
+        }  
+        first = 0;
+        sprintf(num, "%u", buffer);  // Convierte el número a cadena
+        write(ftext, num, strlen(num));
+    }
+
     //CERRAR
     close(fbin);
     close(ftext);
