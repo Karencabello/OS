@@ -27,7 +27,7 @@ int convert2text(char *path , char *newpath){
     
     off_t fileSize = lseek(fbin, 0, SEEK_END);  // Calculamos el número de bytes que ocupa el ficherp
     off_t numbers = fileSize/sizeof(int);       // Calculamos el total de entero que incluye el fichero
-    printf("filesize %ld\n", fileSize);
+    //printf("filesize %ld\n", fileSize);
 
     char buffer[12];      // Guardará la representación en cadena del entero (asumimos que no tendrá más de 11 dígitos -pos 12: \0-)
     char comma = ',';
