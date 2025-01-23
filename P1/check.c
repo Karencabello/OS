@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <stdio.h>
 
-int main() {
-    int file = open("file.dat", O_RDONLY);
+int main(int argc, char *argv[]) {
+    int file = open(argv[1], O_RDONLY);
     int value;
     int position = 1; // Start reading from position 1
 
