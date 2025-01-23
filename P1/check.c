@@ -1,16 +1,18 @@
+// This file prints the integeres stored in a binary file.
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdio.h>
-#include <stdlib.h>
 
-int main(int argc, char *argv[]) {
-    FILE *file = fopen(argv[1], "rb");
+int main() {
+    int file = open("file.dat", O_RDONLY);
     int value;
     int position = 1; // Start reading from position 1
 
-    while (fread(&value, sizeof(int), 1, file)) {
+    while (read(file, &value, sizeof(int)) > 0) {
         printf("Position %d: %d\n", position, value);
         position++;
     }
 
-    fclose(file);
+    close(file);
     return 0;
 }
