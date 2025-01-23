@@ -6,45 +6,7 @@
 
 // Usage: file_converter -binary|-text inputfile outputfile
 
-//Esta función convierte de binario a texto
-int convert2text(char *path , char *newpath){
-    //abrimos file binario modo lectura
-    int fbin = open(path, O_RDONLY, 0644); 
-    //Comprovamos que ok
-    if(fbin == -1){ 
-        perror("ERROR"); 
-        close(fbin); 
-        return 0;
-    }
-    //creamos file binario modo escritura
-    int ftext = open(newpath, O_WRONLY | O_CREAT, 0644);
-    //Comprovamos que ok
-    if(ftext == -1){
-        perror("ERROR"); 
-        close(ftext); 
-        return 0;
-    }
 
-
-    unsigned char buffer;
-    int first = 1;  // controlar si es el primer número
-    char num[12]; 
-    while(read(fbin, &buffer, sizeof(buffer)) == sizeof(buffer)){
-        if (!first){
-            // Escribimos una coma antes de cada número (excepto el primero)
-            char comma = ',';
-            write(ftext, &comma, sizeof(comma));
-        }  
-        first = 0;
-        sprintf(num, "%u", buffer);  // Convierte el número a cadena
-        write(ftext, num, strlen(num));
-    }
-
-    //CERRAR
-    close(fbin);
-    close(ftext);
-    return 1;
-}
 
 //Esta función convierte de text a binario
 int convert2bin(char *path, char *newpath){
