@@ -24,21 +24,14 @@ void bytesAndLengthOld(int fd, int position, char newVal[], int* bytesUntilpos, 
     
     off_t fileSize = lseek(fd, 0, SEEK_END); 
     char s;  
-    printf("Filesize: %ld\n", fileSize);
     lseek(fd, 0, SEEK_SET);   
     for(off_t i=0; i<fileSize; i++) {
-        printf("bytes: %d ", bytes);
-        printf("pos: %d ", pos);
-        
         int nBytesRead = read(fd, &s, 1);
         // check if we have reached the target position
         if(pos == position && s !=','){
             *bytesUntilpos = bytes;
             found = true;
-            printf("We have reached the position\n");
         }
-        
-        printf("s[%ld]= %c\n", i, s);
 
         if(found) {
             if('0' <= s && s <= '9'){
@@ -51,8 +44,6 @@ void bytesAndLengthOld(int fd, int position, char newVal[], int* bytesUntilpos, 
         else {
             bytes++;
         }
-
-        printf("bytesUntil: %d\n", *bytesUntilpos);
 
         // Update current position and number of bytes read
         if(s == ','){
@@ -69,8 +60,6 @@ void modifyFtext(int fd, int position, char* newVal) {
     bytesAndLengthOld(fd, position, newVal, &bytesUntilpos, &digitsOld);
     // identify the number of char(digits) of the NEW value --> digitsNew
     int digitsNew = strlen(newVal);
-
-    printf("DigitsOLD: %d, DigitsNEW: %d\n", digitsOld, digitsNew);
     // Get the file size (off_t has a greater capacity than int)
     off_t fileSize = lseek(fd, 0, SEEK_END); 
     //Dynamic array
@@ -78,13 +67,11 @@ void modifyFtext(int fd, int position, char* newVal) {
     //char buff[fileSize - bytesUntilpos]; this is not possible because the length of the array would be decided at runtime
 
     if(digitsOld == digitsNew) {
-       printf("digitsOld == digitsNew\n");
        lseek(fd, bytesUntilpos, SEEK_SET);
        write(fd, newVal, digitsNew); 
     }
 
     else {
-        printf("digitsOld != digitsNew\n");
         lseek(fd, bytesUntilpos + digitsOld, SEEK_SET); // we want to read all content after the old values (but we don't care about the old value)
         int nBytesRead = read(fd, buff, fileSize - bytesUntilpos - digitsOld);
         buff[nBytesRead] = '\0';
@@ -94,7 +81,6 @@ void modifyFtext(int fd, int position, char* newVal) {
             write(fd, buff, fileSize-bytesUntilpos-digitsOld);
         }
         if(digitsOld > digitsNew) {
-            printf("digitlsOld > DigitsNew\n");
             ftruncate(fd, bytesUntilpos + digitsNew + nBytesRead);
         }
     }
@@ -125,7 +111,6 @@ int main(int argc, char* argv[]) {
         modifyFbinary(fd, position, new_val);
     }
     else{
-        printf("Text\n");
         modifyFtext(fd, position, newVal);
     }
 
