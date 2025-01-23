@@ -1,14 +1,15 @@
-#include <stdio.h>
-#include <stdlib.h>
+//This file creates a binary file that stores some integers
+#include <fcntl.h>
+#include <unistd.h>
 
 int main() {
-    FILE *file = fopen("file.dat", "wb");
-    int values[] = {10, 20, 30, 40, 50}; // sample values to write to the file
+    int file = open("file.dat", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    int values[] = {10,20,30,40,50}; // sample values to write to the file
 
     for (int i = 0; i < 5; i++) {
-        fwrite(&values[i], sizeof(int), 1, file);
+        write(file, &values[i], sizeof(int));
     }
 
-    fclose(file);
+    close(file);
     return 0;
 }
