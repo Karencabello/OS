@@ -6,7 +6,65 @@
 
 // Usage: file_converter -binary|-text inputfile outputfile
 
+// Esta función convierte de binario a texto
+int convert2text(char *path , char *newpath){
+    //abrimos file binario modo lectura
+    int fbin = open(path, O_RDONLY, 0644); 
+    //Comprobamos que ok
+    if(fbin == -1){ 
+        perror("ERROR"); 
+        close(fbin); 
+        return 0;
+    }
+    // Abrimos file tipo txt en modo escritura
+    int ftext = open(newpath, O_WRONLY | O_CREAT, 0644);
+    //Comprobamos que ok
+    if(ftext == -1){
+        perror("ERROR"); 
+        close(ftext); 
+        return 0;
+    }
+    
+    off_t fileSize = lseek(fbin, 0, SEEK_END);  // Calculamos el número de bytes que ocupa el ficherp
+    off_t numbers = fileSize/sizeof(int);       // Calculamos el total de entero que incluye el fichero
+    printf("filesize %ld\n", fileSize);
 
+    char buffer[12];      // Guardará la representación en cadena del entero (asumimos que no tendrá más de 11 dígitos -pos 12: \0-)
+    char comma = ',';
+    int num;              // Guardará el entero que leamos por iteración
+
+    lseek(fbin, 0, SEEK_SET); // Nos posicionamos al principio del fichero
+    for(off_t i=0; i<numbers; i++) {
+        read(fbin, &num, sizeof(int)); // Leemos los 4 bytes que representan al entero de la iteración del fichero en binario
+        sprintf(buffer, "%d", num);  // Convierte el número a cadena
+        write(ftext, buffer, strlen(buffer)); // Escribimos el número en texto en el documento txt
+        if(i != numbers -1){
+            write(ftext, &comma, sizeof(comma)); // Si no estamos al final del documento, añadimos una coma
+        }
+
+    }
+
+/*
+    unsigned char buffer;
+    char comma = ',';
+    char num[12]; 
+    while(read(fbin, &buffer, sizeof(buffer)) == sizeof(buffer)){
+        //quan \0 cambiem per , i escrivim  
+        if(buffer == '\0'){
+            write(ftext, &comma, sizeof(comma));
+        }
+        else{
+            sprintf(num, "%u", buffer);  // Convierte el número a cadena
+            write(ftext, num, strlen(num));
+        }
+    }  
+*/
+
+    //CERRAR
+    close(fbin);
+    close(ftext);
+    return 1;
+}
 
 //Esta función convierte de text a binario
 int convert2bin(char *path, char *newpath){
@@ -35,7 +93,7 @@ int convert2bin(char *path, char *newpath){
 
     while((bytes_leidos = read(ftext, buffer, sizeof(buffer))) > 0){
         for(int i = 0; i < bytes_leidos; i++){
-            if(buffer[i] == ','){ //quan , cambiem per \0 i escrivim 
+            if(buffer[i] == ','){ //quan , canviem per \0 i escrivim 
                 if(num_index > 0){
                     number[num_index] = '\0'; //terminamos cadena
                     value = atoi(number); //convertimos a entero
