@@ -20,3 +20,4 @@ int main(int argc, char * argv[]) {
         wait(NULL); // We put NULL because we are not interested in the return value
         //waitpid(n, NULL);  // This is equivalent, and will wait for a specific child.
     }
+}

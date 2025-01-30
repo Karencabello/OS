@@ -21,3 +21,57 @@ Allowed function calls:
 getppid, printf, scanf, malloc, free. You are not allowed to use any other functions 
 that directly or indirectly use a system call (i.e. fwrite). 
 */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <dirent.h>
+// Usage: /.directoryExplorer directory
+
+int son(){
+    //Funciones que hace el hijo
+        //Abrimos file
+        //Leemos file como int
+        //sumamos int
+        //Escribimos en pipe
+        //exit
+
+}
+
+int father(){
+    int fd[2];
+    pipe(fd);
+    //Father
+        //read pipe
+        //printf
+        //Cuando todos acaben --> exit
+}
+
+
+
+
+
+int main(int argc, char* argv[]) {
+    // 1. Abrir el directorio
+    // Coge directorio argumentos CLI
+    char * filename = argv[1];
+    
+    // Abre el directorio especificado en filename.
+    DIR* d = opendir(filename);
+
+    // Declara un puntero para leer los archivos del directorio.
+    struct dirent* fileInDir;
+
+    // Itera sobre los elementos del directorio.
+    while ((fileInDir = readdir(d)) != NULL) {
+        //List files --> PRINT
+        //if dir == .dat
+        //Creamos hijo
+        //llamar a funcion son
+        //exit son
+        //llamar a la funcion padre
+        //exit padre
+        
+
+    }   
+}
