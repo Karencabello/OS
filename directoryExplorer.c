@@ -96,6 +96,8 @@ int main(int argc, char* argv[]) {
                 //TAMBIEN SE PUEDE HACER DENTRO DE SON NS Q ES MEJOR
                 //llamar a funcion son
                 son(fileInDir->d_name, fd[1]); //Ajustar atributos y tal
+                //Cerrar escritura pipe
+                close(fd[1]);
                 //Exit son en la función son
             }
             //El padre no hace nada y continua con la ejecución
@@ -111,6 +113,8 @@ int main(int argc, char* argv[]) {
     //Como ya han acabado todos los hijos empecemos con el padre
     //Cerramos pipe escritura
     close(fd[1]);
+    //Esperamos a que todos los hijos hayan acabado 
+    wait(NULL);
     //Llamamos a la función padre
     padre(fd[0]);
     //Cerramos pipe lectura
