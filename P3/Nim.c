@@ -16,6 +16,7 @@
 //SIGUSR2 --> terminar el juego (lo envia el que gana)
 
 /* ------------------------------------------------------------------------------- */
+pid_t pid;
 volatile int turn = 0; 
 //0 --> padre 
 //1 --> hijo 
@@ -33,19 +34,39 @@ int turn(int file){
     //Miramos si alguien ha ganado/cambiamos de turno
     if(tokens <= 0){
         //Ha ganado
-        signal_handler(SIGUSR2);
+        signal(SIGUSR2,signal_handler);
     }
     else{
         //Cambia de turno
-        signal_handler(SIGUSR1);
         signal(SIGUSR1,signal_handler);
     }
 }
 
-void signal_handler(int sig, int turn){
+void signal_handler(int sig){
+    char loser[7];
+    int pid_loser;
+    if(sig == SIGUSR1){
+        if(turn == 0){ //Padre --> hijo
+            turn++ ;
+        }
+        else{ //Hijo --> padre
+            turn--;
+        }
+    }
+    else if(sig == SIGUSR2){
+        if(turn == 0){
+            strcpy(loser, "Son");
+            pid_loser = pid;
+            printf("My pid is %d, I am the %s, and I have lost\n", pid_loser, loser);
 
-    if(sig == SIGUSR1){}
-    else if(sig == SIGUSR2){}
+        }
+        else if(turn == 1){
+            strcpy(loser, "Father");
+            pid_loser = getppid(); //pid del padre
+            printf("My pid is %d, I am the %s, and I have lost\n", pid_loser, loser);
+
+        }
+    }
 }
 
 
@@ -56,7 +77,7 @@ int main (int argc, char *argv[]) {
 
 
     //Create child process
-    int pid = fork();
+    pid = fork();
 
     //Joc
     if (pid == 0) { //fill
