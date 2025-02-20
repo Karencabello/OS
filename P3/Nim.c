@@ -17,11 +17,11 @@
 
 /* ------------------------------------------------------------------------------- */
 pid_t pid;
-volatile int turn = 0; 
+int turn = 0; 
 //0 --> padre 
 //1 --> hijo 
 
-int turn(int file){
+int game_turn(int file){
     //Lee el numero de tokens que quedan
     int tokens = read(file, &tokens, sizeof(int));
     //Generamos los tokens que vamos a mover
@@ -78,6 +78,12 @@ int main (int argc, char *argv[]) {
 
     //Create child process
     pid = fork();
+    
+    // Check if the fork was successful
+    if (pid == -1) {
+        perror("Error creating child process");
+        return 1;
+    }
 
     //Joc
     if (pid == 0) { //fill
@@ -88,6 +94,7 @@ int main (int argc, char *argv[]) {
 
     }
 
-    //CLOSE FILE!!!!!!!!!!!!!!!!!!!
+    //CLOSE FILE!
+    close(fd);
 
 }
