@@ -88,9 +88,11 @@ int main (int argc, char *argv[]) {
     //Joc
     if (pid == 0) { //fill
         sleep(1);
+        //Fer que esperin per no coincidir
 
     }
     else { //pare
+        //Fer que esperin per no coincidir
 
     }
 
