@@ -1,102 +1,107 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <time.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/wait.h>
 
-//Create child process
 
-//Programar el juego en general 
-    //Name of tokens en el game.dat
-    //Padre primero
-    //El numero de tokens que puden sacar --> rand()%3 +1 (1,2,3)
-    //El que saca el ultimo token gana --> My pid is x, i'm the (father/son), and i have lost
-//en game.dat tambièn se guarda el número de tokens que quedan por sacar (como enteros binario)
-//SIGUSR1 --> cambiar de turno (el que acaba de tirar)
-//SIGUSR2 --> terminar el juego (lo envia el que gana)
+// Global variables
 
-/* ------------------------------------------------------------------------------- */
-pid_t pid;
-int turn = 0; 
-//0 --> padre 
-//1 --> hijo 
+int fd;
+int receiver_pid;
+int current; // 0 for father, 1 for son
 
-int game_turn(int file){
-    //Lee el numero de tokens que quedan
-    int tokens = read(file, &tokens, sizeof(int));
-    //Generamos los tokens que vamos a mover
-    int tokens_to_move = rand()%3 + 1;
-    //Restamos el numero de toquens que quedan ahora
-    tokens = tokens - tokens_to_move;
-    //Actualizamos el fichero --> 
-    lseek(file, 0, SEEK_SET);
-    write(file, &tokens, sizeof(int));
-    //Miramos si alguien ha ganado/cambiamos de turno
-    if(tokens <= 0){
-        //Ha ganado
-        signal(SIGUSR2,signal_handler);
+// Auxiliary functions
+
+void handle_turn(int sig1){
+    int current_tokens;
+    lseek(fd, 0, SEEK_SET);
+    read(fd, &current_tokens, sizeof(int));
+    int taken_tokens = rand()%3+1;
+    int new_tokens = current_tokens-taken_tokens;
+    // for debugging
+    printf("I am %d and my pid is %d. I will subtract %d. Now there are %d tokens left\n", current, getpid(), taken_tokens, new_tokens);
+    if(new_tokens > 0){
+        lseek(fd, 0, SEEK_SET);
+        write(fd, &new_tokens, sizeof(int));
+        kill(receiver_pid, SIGUSR1);
     }
     else{
-        //Cambia de turno
-        signal(SIGUSR1,signal_handler);
+        kill(receiver_pid, SIGUSR2);
     }
-}
 
-void signal_handler(int sig){
+}
+void handle_victory(int sig2){
+    int loser_pid = getpid();
     char loser[7];
-    int pid_loser;
-    if(sig == SIGUSR1){
-        if(turn == 0){ //Padre --> hijo
-            turn++ ;
-        }
-        else{ //Hijo --> padre
-            turn--;
-        }
+    if(current == 0){
+        strcpy(loser, "Father");
     }
-    else if(sig == SIGUSR2){
-        if(turn == 0){
-            strcpy(loser, "Son");
-            pid_loser = pid;
-            printf("My pid is %d, I am the %s, and I have lost\n", pid_loser, loser);
-
-        }
-        else if(turn == 1){
-            strcpy(loser, "Father");
-            pid_loser = getppid(); //pid del padre
-            printf("My pid is %d, I am the %s, and I have lost\n", pid_loser, loser);
-
-        }
+    else{
+        strcpy(loser, "Son");
     }
+    printf("My PID is %d, I am the %s, and I have lost. \n", loser_pid, loser);
+    exit(0);
 }
 
+// Main
 
+int main(int argc, char* argv[]){
+    // read number of tokens from CLI and write to binary file named game.dat
+    int tokens = atoi(argv[1]);
+    fd = open("game.dat", O_CREAT | O_RDWR, 0644);
+    write(fd, &tokens, sizeof(int));
 
-int main (int argc, char *argv[]) {
-    //abrir file
-    int fd = open("game.dat", O_RDWR | O_CREAT, 0644);
+    // game
+    srand(time(NULL));
+    int n = fork();
+    if(n == 0){ // son process
+        receiver_pid = getppid();
+        current = 1;
 
+        signal(SIGUSR1, handle_turn);
+        signal(SIGUSR2, handle_victory);
 
-    //Create child process
-    pid = fork();
-    
-    // Check if the fork was successful
-    if (pid == -1) {
-        perror("Error creating child process");
-        return 1;
-    }
-
-    //Joc
-    if (pid == 0) { //fill
-        sleep(1);
-        //Fer que esperin per no coincidir
-
-    }
-    else { //pare
-        //Fer que esperin per no coincidir
+        while(1){
+            pause();
+        }
 
     }
 
-    //CLOSE FILE!
+    else{ // father process
+        receiver_pid = n; // because father sends signal to son
+        current = 0;
+
+        signal(SIGUSR1, handle_turn);
+        signal(SIGUSR2, handle_victory);
+
+        // father makes the first move
+        sleep(1); // to ensure son has set signal before father sends it
+        int current_tokens;
+        lseek(fd, 0, SEEK_SET);
+        read(fd, &current_tokens, sizeof(int));
+        int taken_tokens = rand()%3+1;
+        int new_tokens = current_tokens-taken_tokens;
+        printf("I am %d and my pid is %d. I will subtract %d. Now there are %d tokens left\n", current, getpid(), taken_tokens, new_tokens);
+        if(new_tokens > 0){
+            lseek(fd, 0, SEEK_SET);
+            write(fd, &new_tokens, sizeof(int));
+            kill(receiver_pid, SIGUSR1);
+        }
+        else{
+            kill(receiver_pid, SIGUSR2);
+        }
+
+        // game loop
+        while(1){
+            pause();
+        }
+        wait(NULL); // to avoid zombie son
+    }
+
+    // close file
     close(fd);
-
 }
