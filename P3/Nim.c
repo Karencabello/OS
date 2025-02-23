@@ -59,7 +59,7 @@ int main(int argc, char* argv[]){
     srand(time(NULL)); 
     int n = fork();
     if(n == 0){ // son process
-        receiver_pid = getppid(); // because son sends the signal fo father
+        receiver_pid = getppid(); // because son sends the signal to father
         current = 1;
 
         signal(SIGUSR1, handle_turn); // set signal
