@@ -51,22 +51,24 @@ void handle_victory(int sig2){
 
 int main(int argc, char* argv[]){
     // read number of tokens from CLI and write to binary file named game.dat
-    int tokens = atoi(argv[1]);
+    int tokens = atoi(argv[1]); // from string to integer
     fd = open("game.dat", O_CREAT | O_RDWR, 0644);
     write(fd, &tokens, sizeof(int));
 
     // game
-    srand(time(NULL));
+    srand(time(NULL)); 
     int n = fork();
     if(n == 0){ // son process
-        receiver_pid = getppid();
+        receiver_pid = getppid(); // because son sends the signal fo father
         current = 1;
 
-        signal(SIGUSR1, handle_turn);
+        signal(SIGUSR1, handle_turn); // set signal
         signal(SIGUSR2, handle_victory);
 
+        // game loop
         while(1){
-            pause();
+            //pause()
+            sleep(5);
         }
 
     }
@@ -97,11 +99,12 @@ int main(int argc, char* argv[]){
 
         // game loop
         while(1){
-            pause();
+            //pause();
+            sleep(5);
         }
-        wait(NULL); // to avoid zombie son
     }
 
-    // close file
-    close(fd);
+    wait(NULL); // to avoid zombie son
+
+    close(fd); // close file
 }
