@@ -87,6 +87,7 @@ int main(int argc, char* argv[]){
         read(fd, &current_tokens, sizeof(int));
         int taken_tokens = rand()%3+1;
         int new_tokens = current_tokens-taken_tokens;
+        // for debugging
         printf("I am %d and my pid is %d. I will subtract %d. Now there are %d tokens left\n", current, getpid(), taken_tokens, new_tokens);
         if(new_tokens > 0){
             lseek(fd, 0, SEEK_SET);
