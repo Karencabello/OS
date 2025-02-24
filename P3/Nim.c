@@ -125,6 +125,10 @@ int main(int argc, char* argv[]){
         // game loop
         while(1){
             pause();
+            //Usamos pause en vez de sleep porque es más eficiente para la CPU. Durante el while, la CPU consume recursos
+            //y con sleep hacemos que durante x segundos deje de usar la CPU y por lo tanto, consume menos. 
+            //El problema es que si la señal tarda más de esos x segundos consumira recursos de la CPU hasta que llegue la señal.
+            //En cambio, con pause nos aseguramos de que no consuma nada hasta que la señal llegue y por lo tanto, es más eficiente.
         }
     }
 
