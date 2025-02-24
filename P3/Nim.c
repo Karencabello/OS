@@ -18,17 +18,26 @@ int current; // 0 for father, 1 for son
 
 void handle_turn(int sig1){
     int current_tokens;
+
+    //Read number of tokens from the file
     lseek(fd, 0, SEEK_SET);
     read(fd, &current_tokens, sizeof(int));
+
+    // Remove 1,2,3 tokens randomly
     int taken_tokens = rand()%3+1;
     int new_tokens = current_tokens-taken_tokens;
+
     // for debugging
     printf("I am %d and my pid is %d. I will subtract %d. Now there are %d tokens left\n", current, getpid(), taken_tokens, new_tokens);
+    
+    //No winner --> update the file with the tokens remaining
     if(new_tokens > 0){
         lseek(fd, 0, SEEK_SET);
         write(fd, &new_tokens, sizeof(int));
+        //Send signal to let know the opponent it's their turn
         kill(receiver_pid, SIGUSR1);
     }
+    //There's a winner --> send signal to the loser
     else{
         kill(receiver_pid, SIGUSR2);
     }
@@ -37,6 +46,8 @@ void handle_turn(int sig1){
 void handle_victory(int sig2){
     int loser_pid = getpid();
     char loser[7];
+
+    //Identify who is the loser
     if(current == 0){
         strcpy(loser, "Father");
     }
@@ -44,6 +55,9 @@ void handle_victory(int sig2){
         strcpy(loser, "Son");
     }
     printf("My PID is %d, I am the %s, and I have lost. \n", loser_pid, loser);
+    
+    //CLOSE FILE
+    close(fd);
     exit(0);
 }
 
@@ -66,9 +80,10 @@ int main(int argc, char* argv[]){
         signal(SIGUSR2, handle_victory);
 
         // game loop
+        pause(); //Wait for signal
         while(1){
-            //pause()
-            sleep(5);
+            pause(); //wait turn
+    
         }
 
     }
@@ -82,30 +97,39 @@ int main(int argc, char* argv[]){
 
         // father makes the first move
         sleep(1); // to ensure son has set signal before father sends it
+        
         int current_tokens;
         lseek(fd, 0, SEEK_SET);
         read(fd, &current_tokens, sizeof(int));
+        
+        //Father removes tokens
         int taken_tokens = rand()%3+1;
         int new_tokens = current_tokens-taken_tokens;
+        
         // for debugging
         printf("I am %d and my pid is %d. I will subtract %d. Now there are %d tokens left\n", current, getpid(), taken_tokens, new_tokens);
+        
         if(new_tokens > 0){
+            //update file with new tokens
             lseek(fd, 0, SEEK_SET);
             write(fd, &new_tokens, sizeof(int));
+
+            //change turn
             kill(receiver_pid, SIGUSR1);
         }
         else{
+            //notify son that he lost
             kill(receiver_pid, SIGUSR2);
         }
 
         // game loop
         while(1){
-            //pause();
-            sleep(5);
+            pause();
         }
     }
 
     wait(NULL); // to avoid zombie son
 
-    close(fd); // close file
+    //close(fd); // close file 
+    return 0;
 }
