@@ -23,7 +23,7 @@ void * thread_player_A(void * arg) {
     int decrement = (*decrementp);
     
     while(counter >= decrement) {
-        
+        //cabiar condicion
         pthread_mutex_lock(&lock);
         
         while(turn == 0){ // si no es el turno de A, que sus threads descansen
@@ -45,6 +45,8 @@ void * thread_player_A(void * arg) {
     }
     free(arg);
     //REVISAR CONDITION VARIABLES
+        //condicion para cada jugador 
+        //broadcast en condicion del contrario --> hacer signal mejor pq solo despierta a uno 
     
 }
 
