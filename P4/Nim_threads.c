@@ -12,7 +12,8 @@ int counter;
 int turn = 1; // 1 --> A ; 0 --> B
 int fd;
 pthread_mutex_t lock;
-pthread_cond_t cond;
+pthread_cond_t condA;
+pthread_cond_t condB;
 
 //Funcion del jugador A, le enviamos los 3 threads y el que llegue primero, pasará y los otros se cerraran.
 void * thread_player_A(void * arg) {
@@ -22,15 +23,13 @@ void * thread_player_A(void * arg) {
     int* decrementp = (int*)arg;
     int decrement = (*decrementp);
     
-    while(counter >= decrement) {
+    while(counter > 0) {
         //cabiar condicion
         pthread_mutex_lock(&lock);
         
         while(turn == 0){ // si no es el turno de A, que sus threads descansen
-            pthread_cond_wait(&cond, &lock);
+            pthread_cond_wait(&condA, &lock);
         }
-        
-        //que duerman los threads de A que no estan lock
 
         if (turn == 1 && counter >= decrement) { // si es el turno de A, que reste lo que le toca
             printf("Player A decreasing %d \n", decrement);
@@ -41,7 +40,8 @@ void * thread_player_A(void * arg) {
             turn = 0; // Cambiamos turno --> Important to make it BEFORE the signal 
         }
         pthread_mutex_unlock(&lock); // liberamos el lock
-        pthread_cond_broadcast(&cond); // despertamos los otros threads
+        //pthread_cond_broadcast(&condB); // despertamos los otros threads
+        pthread_cond_signal(&condB); 
     }
     free(arg);
     //REVISAR CONDITION VARIABLES
@@ -59,12 +59,12 @@ void * thread_player_B(void * arg) {// Write here the code to obtain the specifi
     int* decrementp = (int*)arg;
     int decrement = (*decrementp);
     
-    while(counter >= decrement) {
+    while(counter > 0) {
 
         pthread_mutex_lock(&lock);
         
         while(turn == 1){ // si no es el turno de B, que sus threads descansen
-            pthread_cond_wait(&cond, &lock);
+            pthread_cond_wait(&condB, &lock);
         }
         
         //que duerman los threads de B que no estan lock
@@ -78,7 +78,7 @@ void * thread_player_B(void * arg) {// Write here the code to obtain the specifi
             turn = 1; // Cambiamos turno --> Important to make it BEFORE the signal 
         }
         pthread_mutex_unlock(&lock); // liberamos el lock
-        pthread_cond_broadcast(&cond); // despertamos los otros threads
+        pthread_cond_broadcast(&condA); // despertamos los otros threads
     }
     free(arg);
     //REVISAR CONDITION VARIABLES
@@ -97,7 +97,8 @@ int main(int argc, char* argv[]){
 
     // Initialize condition and lock
     pthread_mutex_init(&lock, NULL);
-    pthread_cond_init(&cond, NULL);
+    pthread_cond_init(&condA, NULL);
+    pthread_cond_init(&condB, NULL);
 
     //Creamos los 3 threads de A 
     pthread_t thread_A[NUM_THREADS]; //A[0] = -1; A[1] = -2; A[2] = -3;
