@@ -12,3 +12,6 @@
 
     // CODE GIVEN --> requires all the synchronization mechanisms to make the game work as described.
 //IMPORTANT --> make sure to avoid active waiting and starvation (HINT: use condition variables). 
+
+//Enviamos los tres threads y el que se ejecute primero 
+//sleep para que sea aleatorio --> pero pequeño y al principio de la funcion

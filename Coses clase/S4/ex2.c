@@ -23,6 +23,7 @@ void* thread(void* arg){
     A[i] = i*i; //Assign square of index to A[i]
     return NULL;
 }
+
 int main(int argc, char *argv[]){
     pthread_t threads[NUM_THREADS];
     int j;
