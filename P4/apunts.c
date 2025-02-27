@@ -7,6 +7,7 @@
     // 1. thre threads lock file
     // 2. But only one of them (which, from our perspective, will be random) will succeed, and will decrease the number of tokens in game.dat according to its value.
     // 3. pass turn --> Make proper use of synchronization to ensure that only one thread of one player modifies the file at a time. 
+    //Update game.dat!!!!!!!!!
 //Game ends --> ll threads should be woken up and declare whether player A or B has won. Then, make sure that the program ends correctly.
 
     // CODE GIVEN --> requires all the synchronization mechanisms to make the game work as described.
