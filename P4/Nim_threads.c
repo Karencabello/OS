@@ -7,7 +7,7 @@
 #include <pthread.h>
 
 #define NUM_THREADS 3
-//VICTORIA!!!!
+//VICTORIA --> se gestiona en funcion de quien hizo el ultimo movimiento 
 int counter;
 int turn = 1; // 1 --> A ; 0 --> B
 int fd;
@@ -31,6 +31,14 @@ void * thread_player_A(void * arg) {
             pthread_cond_wait(&condA, &lock);
         }
 
+        //Victoria --> Unlock 
+        if (counter <= 0){
+            pthread_mutex_unlock(&lock);
+            pthread_cond_broadcast(&condB); //Pq gana A
+            free(arg);
+            return NULL;
+        }
+
         if (turn == 1 && counter >= decrement) { // si es el turno de A, que reste lo que le toca
             printf("Player A decreasing %d \n", decrement);
             counter -= decrement;
@@ -44,6 +52,7 @@ void * thread_player_A(void * arg) {
         pthread_cond_signal(&condB); 
     }
     free(arg);
+    return NULL;
     //REVISAR CONDITION VARIABLES
         //condicion para cada jugador 
         //broadcast en condicion del contrario --> hacer signal mejor pq solo despierta a uno 
@@ -66,8 +75,14 @@ void * thread_player_B(void * arg) {// Write here the code to obtain the specifi
         while(turn == 1){ // si no es el turno de B, que sus threads descansen
             pthread_cond_wait(&condB, &lock);
         }
-        
-        //que duerman los threads de B que no estan lock
+
+        //Victoria --> Unlock 
+        if (counter <= 0){
+            pthread_mutex_unlock(&lock);
+            pthread_cond_broadcast(&condA); //Pq gana B
+            free(arg);
+            return NULL;
+        }
 
         if (turn == 0 && counter >= decrement) { // si es el turno de B, que reste lo que le toca
             printf("Player B decreasing %d \n", decrement);
@@ -81,6 +96,7 @@ void * thread_player_B(void * arg) {// Write here the code to obtain the specifi
         pthread_cond_broadcast(&condA); // despertamos los otros threads
     }
     free(arg);
+    return NULL;
     //REVISAR CONDITION VARIABLES
 }
 
@@ -122,6 +138,15 @@ int main(int argc, char* argv[]){
         pthread_join(thread_B[i], NULL);
     }
 
-    close(fd);
+    //VICTORIA
+    // Print game result
+    printf("Game Over! %s wins!\n", turn == 1 ? "Player B" : "Player A");
 
+    //Cerrar todo 
+    close(fd);
+    pthread_mutex_destroy(&lock);
+    pthread_cond_destroy(&condA);
+    pthread_cond_destroy(&condB);
+    
+    return 0;
 }
