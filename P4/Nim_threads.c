@@ -38,6 +38,8 @@ void *thread_player_A(void *arg) {
         if (counter > 0 && turn == 1 && counter >= decrement) {
             printf("Player A decreasing %d (before: %d)\n", decrement, counter);
             counter -= decrement;
+            lseek(fd, 0, SEEK_SET);
+            write(fd, &counter, sizeof(int)); // update game.dat
             printf("COUNTER after A: %d\n", counter);
             
             if (counter <= 0) {
@@ -80,6 +82,8 @@ void *thread_player_B(void *arg) {
         if (counter > 0 && turn == 0 && counter >= decrement) {
             printf("Player B decreasing %d (before: %d)\n", decrement, counter);
             counter -= decrement;
+            lseek(fd, 0, SEEK_SET);
+            write(fd, &counter, sizeof(int)); // update game.dat
             printf("COUNTER after B: %d\n", counter);
             
             if (counter <= 0) {
