@@ -14,6 +14,7 @@ int winner = -1; // -1: No winner yet, 1 --> A, 0 --> B
 int fd; 
 pthread_mutex_t lock; // Mutex para la sincronización de hilos
 pthread_cond_t condA, condB; // Variables de condición para el control de turnos
+int game_over = 0; // Indica el fin de juego 
 
 void *thread_player_A(void *arg) {
     
@@ -24,17 +25,28 @@ void *thread_player_A(void *arg) {
     while (1) {
         pthread_mutex_lock(&lock); // Bloquea el mutex para acceso exclusivo
 
-        if (counter <= 0) { // Verifica si el contador llegó a 0 para winner
+        /*if (counter <= 0) { // Verifica si el contador llegó a 0 para winner
             if (winner == 0)
                 printf("THREAD: A.%d. I announce Player B is the winner\n", decrement);
             else if (winner == 1)
                 printf("THREAD: A.%d. I announce Player A is the winner\n", decrement);
             pthread_mutex_unlock(&lock);
             return NULL;
+        }*/
+
+        if(game_over){ // Verifica si el juego ha terminado
+            pthread_mutex_unlock(&lock);
+            return NULL;
         }
         
-        while (turn == 0 && counter > 0) // Wait para consumir menos mientras no es el turno 
+        while (turn == 0 && !game_over){ // Wait para consumir menos mientras no es el turno 
             pthread_cond_wait(&condA, &lock);
+        }
+
+        if (game_over){
+            pthread_mutex_unlock(&lock);
+            return NULL;
+        }
 
         if (counter > 0 && turn == 1 && counter >= decrement) { // Realiazamos movimiento y actualizamos game.dat 
             printf("Player A decreasing %d (before: %d)\n", decrement, counter);
@@ -45,6 +57,7 @@ void *thread_player_A(void *arg) {
             
             if (counter <= 0) { // Gestionamos ganador 
                 winner = 1;
+                game_over = 1; // Indica que el juego ha terminado
                 pthread_cond_broadcast(&condA);
                 pthread_cond_broadcast(&condB);
             }
@@ -57,6 +70,7 @@ void *thread_player_A(void *arg) {
         }
         
         pthread_mutex_unlock(&lock); // Desbloqueamos mutex
+        if(game_over) break;
     }
     return NULL;
 }
@@ -69,17 +83,23 @@ void *thread_player_B(void *arg) {
     while (1) {
         pthread_mutex_lock(&lock);
         
-        if (counter <= 0) {
+        /*if (counter <= 0) {
             if (winner == 0)
                 printf("THREAD: B.%d. I announce Player B is the winner\n", decrement);
             else if (winner == 1)
                 printf("THREAD: B.%d. I announce Player A is the winner\n", decrement);            
             pthread_mutex_unlock(&lock);
             return NULL;
+        }*/
+
+        if(game_over){ // Verifica si el juego ha terminado
+            pthread_mutex_unlock(&lock);
+            return NULL;
         }
         
-        while (turn == 1 && counter > 0)
+        while (turn == 1 && !game_over){
             pthread_cond_wait(&condB, &lock);
+        }
 
         if (counter > 0 && turn == 0 && counter >= decrement) {
             printf("Player B decreasing %d (before: %d)\n", decrement, counter);
@@ -90,6 +110,7 @@ void *thread_player_B(void *arg) {
             
             if (counter <= 0) {
                 winner = 0;
+                game_over = 1;
                 pthread_cond_broadcast(&condA);
                 pthread_cond_broadcast(&condB);
             }
@@ -102,6 +123,7 @@ void *thread_player_B(void *arg) {
         }
         
         pthread_mutex_unlock(&lock);
+        if(game_over) break;
     }
     return NULL;
 }
