@@ -160,7 +160,7 @@ int main(int argc, char* argv[]){
 
     //VICTORIA
     // Print game result
-    printf("Game Over! %s wins!\n", turn == 1 ? "Player B" : "Player A");
+    printf("Game Over! %s wins!\n", winner == 1 ? "Player B" : "Player A");
 
     //Cerrar todo 
     close(fd);
