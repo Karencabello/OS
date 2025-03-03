@@ -23,7 +23,7 @@ void *thread_player_A(void *arg) {
     
     while (1) {
         pthread_mutex_lock(&lock); // Bloquea el mutex para acceso exclusivo
-        
+
         if (counter <= 0) { // Verifica si el contador llegó a 0 para winner
             if (winner == 0)
                 printf("THREAD: A.%d. I announce Player B is the winner\n", decrement);
@@ -52,6 +52,7 @@ void *thread_player_A(void *arg) {
                 turn = 0; // Cambiamos el turno 
                 pthread_cond_signal(&condB); // Cambiamos turno llamando al jugador B
             }
+            printf("Player A finished move, turn is now: %d\n", turn);
 
         }
         
@@ -96,7 +97,8 @@ void *thread_player_B(void *arg) {
                 turn = 1;
                 pthread_cond_signal(&condA);
             }
-            
+            printf("Player B finished move, turn is now: %d\n", turn);
+
         }
         
         pthread_mutex_unlock(&lock);
