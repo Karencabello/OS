@@ -145,7 +145,10 @@ int main(int argc, char* argv[]){
     }
 
     // Anunciamos ganador
-    printf("Game Over! Player %c wins!\n", winner == 1 ? 'A' : 'B');
+    if (winner == 0)
+        printf("Game Over! Player B wins!\n");
+    else if (winner == 1)
+        printf("Game Over! Player A wins!\n");
     
     // Destruimos mutex y variables de condición
     pthread_mutex_destroy(&lock);
