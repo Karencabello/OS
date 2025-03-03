@@ -19,15 +19,19 @@ pthread_cond_t condB;
 void * thread_player_A(void * arg) {
     // Sleep para que acaben de hacerse
     usleep(10000);
+    
     // Miramos qué hay que restar
     int* decrementp = (int*)arg;
     int decrement = (*decrementp);
-    
+    free(arg);
+
     while(counter > 0) {
+        printf("counter a number %d\n,", counter);
         //cabiar condicion
         pthread_mutex_lock(&lock);
         
         while(turn == 0){ // si no es el turno de A, que sus threads descansen
+            printf("Thread A esperando turno...\n"); 
             pthread_cond_wait(&condA, &lock);
         }
 
@@ -35,7 +39,6 @@ void * thread_player_A(void * arg) {
         if (counter <= 0){
             pthread_mutex_unlock(&lock);
             pthread_cond_broadcast(&condB); //Pq gana A
-            free(arg);
             return NULL;
         }
 
@@ -47,11 +50,10 @@ void * thread_player_A(void * arg) {
             printf("Counter = %d\n", counter);
             turn = 0; // Cambiamos turno --> Important to make it BEFORE the signal 
         }
+
         pthread_mutex_unlock(&lock); // liberamos el lock
-        //pthread_cond_broadcast(&condB); // despertamos los otros threads
         pthread_cond_signal(&condB); 
     }
-    free(arg);
     return NULL;
     //REVISAR CONDITION VARIABLES
         //condicion para cada jugador 
@@ -64,15 +66,18 @@ void * thread_player_A(void * arg) {
 void * thread_player_B(void * arg) {// Write here the code to obtain the specific decremement of each thread
     // Sleep para que acaben de hacerse
     usleep(10000);
+
     // Miramos qué hay que restar
     int* decrementp = (int*)arg;
     int decrement = (*decrementp);
+    free(arg);
     
     while(counter > 0) {
-
+        printf("counter b number %d\n,", counter);
         pthread_mutex_lock(&lock);
         
         while(turn == 1){ // si no es el turno de B, que sus threads descansen
+            printf("Thread A esperando turno...\n"); 
             pthread_cond_wait(&condB, &lock);
         }
 
@@ -80,7 +85,6 @@ void * thread_player_B(void * arg) {// Write here the code to obtain the specifi
         if (counter <= 0){
             pthread_mutex_unlock(&lock);
             pthread_cond_broadcast(&condA); //Pq gana B
-            free(arg);
             return NULL;
         }
 
@@ -92,10 +96,10 @@ void * thread_player_B(void * arg) {// Write here the code to obtain the specifi
             printf("Counter = %d\n", counter);
             turn = 1; // Cambiamos turno --> Important to make it BEFORE the signal 
         }
+
         pthread_mutex_unlock(&lock); // liberamos el lock
-        pthread_cond_broadcast(&condA); // despertamos los otros threads
+        pthread_cond_signal(&condA); // despertamos los otros threads
     }
-    free(arg);
     return NULL;
     //REVISAR CONDITION VARIABLES
 }
@@ -104,6 +108,7 @@ void * thread_player_B(void * arg) {// Write here the code to obtain the specifi
 int main(int argc, char* argv[]){
     // read number of tokens from CLI and write to binary file named game.dat
     int tokens = atoi(argv[1]); // from string to integer
+    
     fd = open("game.dat", O_CREAT | O_RDWR, 0644);
     lseek(fd, 0, SEEK_SET);
     write(fd, &tokens, sizeof(int));
@@ -122,6 +127,7 @@ int main(int argc, char* argv[]){
         int *arg = malloc(sizeof(int));
         *arg = i + 1;
         pthread_create(&thread_A[i], NULL, thread_player_A, arg);
+        printf("Thread A-%d creado\n", i);
     }
 
     //Crear los 3 threads de B
@@ -130,6 +136,7 @@ int main(int argc, char* argv[]){
         int *arg = malloc(sizeof(int));
         *arg = i + 1;        
         pthread_create(&thread_B[i], NULL, thread_player_B, arg);
+        printf("Thread b-%d creado\n", i);
     }
 
     // Wait for all threads to finish
@@ -140,7 +147,7 @@ int main(int argc, char* argv[]){
 
     //VICTORIA
     // Print game result
-    printf("Game Over! %s wins!\n", turn == 1 ? "Player B" : "Player A");
+    printf("Game Over! %s wins!\n", turn == 0 ? "Player B" : "Player A");
 
     //Cerrar todo 
     close(fd);
