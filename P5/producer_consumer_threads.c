@@ -35,6 +35,7 @@ full, and consumers must wait when their buffer is empty.  */
 
 int buffer_1[SIZE]; // binary integers
 int buffer_2[SIZE]; // Fibbonaci Numbers
+int num = 0;
 
 pthread_mutex_t lock;
 //sem_t
@@ -42,12 +43,19 @@ pthread_mutex_t lock;
 
 void *thread_producer(void *arg){
 
-    //Read (space separated) integers from the keyboard
+    // Read integer from the keyboard
+    int num = rand() % 10;
+
 
     // Convert value in integer
+    int value = atoi(num);
+
 
     // Store in buffer 1
+    buffer_1[num] = value;
+    
 
+num++;
 
 }
 
@@ -122,7 +130,7 @@ int main(int argc, char* argv[]){
         pthread_join(thread_cons[i], NULL);
     }
     
-    
+
     // Clean up
     pthread_mutex_destroy(&lock);
     //pthread_cond_destroy(&condA);
@@ -131,3 +139,10 @@ int main(int argc, char* argv[]){
     return 0;
 
 }
+
+/* FALTA: 
+    - SINCRONIZACIÓN 
+    - Semaforos
+    - Buffer lleno --> producer no puede escribir y no haga active waiting
+    - buffer 2 --> consumer no saque cosas si está vacio 
+    */
