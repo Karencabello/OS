@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         if(pthread_create(&thcons1[i], NULL, &consumer1, NULL) != 0){
             perror("Failed at creating thread");
         }
-        if(pthread_create(&thcons1[i], NULL, &consumer2, NULL) != 0){
+        if(pthread_create(&thcons2[i], NULL, &consumer2, NULL) != 0){
             perror("Failed at creating thread");
         }
     }
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
         if(pthread_join(thcons1[i], NULL) != 0){
             perror("Failed at joining thread");
         }
-        if(pthread_join(thcons1[i], NULL) != 0){
+        if(pthread_join(thcons2[i], NULL) != 0){
             perror("Failed at joining thread");
         }
     }
