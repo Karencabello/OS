@@ -6,7 +6,6 @@
 #include <time.h>
 #include <semaphore.h>
 
-
 #define SIZE 10
 #define NUM_THREADS 6
 #define TH_GROUP 2
@@ -17,9 +16,8 @@ int fibBuffer[SIZE];
 int countBuff1 = 0;
 int countBuff2 = 0;
 
-pthread_mutex_t lockProd;
-pthread_mutex_t lockCons1;
-pthread_mutex_t lockCons2;
+pthread_mutex_t lockBuff1;
+pthread_mutex_t lockBuff2;
 sem_t buff1Free;
 sem_t buff1Filled;
 sem_t buff2Free;
@@ -48,11 +46,12 @@ void* producer(void* arg) {
     while(1) {
         // add one value to prodBuffer
         int x = rand() % 10; 
+        printf("original: %d\n", x);
         sem_wait(&buff1Free); 
-        pthread_mutex_lock(&lockProd);
+        pthread_mutex_lock(&lockBuff1);
         prodBuffer[countBuff1] = x;
         countBuff1++;
-        pthread_mutex_unlock(&lockProd);
+        pthread_mutex_unlock(&lockBuff1);
         sem_post(&buff1Filled);
     }
 
@@ -62,22 +61,20 @@ void* consumer1(void* arg) {
     while(1) {
         // consume one value from prodBuffer
         sem_wait(&buff1Filled); // decrements
-        pthread_mutex_lock(&lockCons1);
+        pthread_mutex_lock(&lockBuff1);
         int fib_num = fib(prodBuffer[countBuff1-1]);
+        printf("fib: %d\n", fib_num);
         countBuff1--;
+        pthread_mutex_unlock(&lockBuff1);
         sem_post(&buff1Free); // increments
 
         // add one value to fibBuffer
         sem_wait(&buff2Free); 
+        pthread_mutex_lock(&lockBuff2);
         fibBuffer[countBuff2] = fib_num;
         countBuff2++;
-        /*
-        if(countBuff2 == SIZE) {
-            pthread_cond_signal(&readingPaused);
-        }
-        pthread_mutex_unlock(&lockCons1);
+        pthread_mutex_unlock(&lockBuff2);
         sem_post(&buff2Filled);
-        */
     }   
 }
 
@@ -85,26 +82,13 @@ void* consumer2(void* arg) {
     // This function prints the fibonacci transformed array once it is full. 
     // We free the lock such that the next time it is filled, the other thread prints the array.
     while(1) {
-        pthread_mutex_lock(&lockCons2);
-        if(countBuff2 < SIZE) {
-            pthread_cond_wait(&readingPaused, &lockCons2);
-        }
-        else{
-            printf("Prod Buffer \n");
-            for(int i=0; i<SIZE; i++){
-                printf("%d ", prodBuffer[i]);
-            }
-
-            printf("\n");
-
-            printf("Fib Buffer \n");
-            for(int i=0; i<SIZE; i++){
-                printf("%d ", fibBuffer[i]);
-    
-            }
-            printf("\n");
-            pthread_mutex_unlock(&lockCons2);
-        }
+        // consume one value from fibBuffer
+        sem_wait(&buff2Filled); // decrements
+        pthread_mutex_lock(&lockBuff2);
+        countBuff2--;
+        pthread_mutex_unlock(&lockBuff2);
+        sem_post(&buff2Free); // increments
+        usleep(1000);
     }
 }
 
@@ -112,9 +96,8 @@ int main(int argc, char* argv[]) {
     srand(time(NULL));
     pthread_t thprod[NUM_THREADS], thcons1[NUM_THREADS], thcons2[NUM_THREADS];
 
-    pthread_mutex_init(&lockProd, NULL);
-    pthread_mutex_init(&lockCons1, NULL);
-    pthread_mutex_init(&lockCons2, NULL);
+    pthread_mutex_init(&lockBuff1, NULL);
+    pthread_mutex_init(&lockBuff2, NULL);
     sem_init(&buff1Filled, 0, 0);
     sem_init(&buff1Free, 0, SIZE);
     sem_init(&buff2Filled, 0, 0);
@@ -145,9 +128,8 @@ int main(int argc, char* argv[]) {
             perror("Failed at joining thread");
         }
     }
-    pthread_mutex_destroy(&lockProd);
-    pthread_mutex_destroy(&lockCons1);
-    pthread_mutex_destroy(&lockCons2);
+    pthread_mutex_destroy(&lockBuff1);
+    pthread_mutex_destroy(&lockBuff2);
     sem_destroy(&buff1Filled);
     sem_destroy(&buff1Free);
     sem_destroy(&buff2Filled);
