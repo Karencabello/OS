@@ -3,7 +3,7 @@ types of threads. The program will continuously read input from the keyboard and
 through multiple threads before outputting the results to the console. */
 
 /* A producer thread will 
-    read space-separated integers from the keyboard, 
+    read integers from the keyboard, 
     convert each read value to an integer, 
     and store it in buffer_1. 
 A consumer-producer thread will 
@@ -35,45 +35,98 @@ full, and consumers must wait when their buffer is empty.  */
 
 int buffer_1[SIZE]; // binary integers
 int buffer_2[SIZE]; // Fibbonaci Numbers
-int num = 0;
 
-pthread_mutex_t lock;
-//sem_t
+int in1 = 0; // Where we intert integer in buffer_1
+int in2 = 0; // Where we intert integer in buffer_2
+int out1 = 0; // Where we remove integer from buffer_1
+int out2 = 0; // Where we remove integer from buffer_2
+int count1 = 0; // Current elements in buffer_1
+int count2 = 0; // Current elements in buffer_2
+
+pthread_mutex_t lockProd; // Protects buffer_1
+pthread_mutex_t lockConsProd; // Protects buffer_2
+pthread_mutex_t lockCons; // buffer_2 accessed safely
+sem_t full1; // Controls buffer_1
+sem_t empty1; // Controls buffer_1
+sem_t full2; // Controls buffer_2
+sem_t empty2; // Controls buffer_2
 
 
 void *thread_producer(void *arg){
+    while(1){
+        // Read integer from the keyboard
+        int num = rand() % 10;
+        //printf("Enter a number:\n");
+        //scanf("%d", &num);
 
-    // Read integer from the keyboard
-    int num = rand() % 10;
+        // Convert value in integer
+        int value = atoi(num);
+
+        sem_wait(&empty1); // Wait if buffer 1 is full
+        pthread_mutex_lock(&lockProd); // Lock buffer_1
 
 
-    // Convert value in integer
-    int value = atoi(num);
+        // Store in buffer 1
+        buffer_1[in1] = value; 
+        in1 = (in1 + 1) % SIZE; // Update
 
-
-    // Store in buffer 1
-    buffer_1[num] = value;
+        count1++;
+        
+        pthread_mutex_unlock(&lockProd); // Unlock buffer_1
+        sem_post(&full1); // Signal that buffer 1 is not empty
+    }
     
-
-num++;
 
 }
 
 void *thread_consumer_producer(void *arg){
 
-    // Read from buffer_1
+    while(1){
 
-    // Fibonacci number
+        sem_wait(&full1); // Wait if buffer 1 is empty
+        pthread_mutex_lock(&lockProd); // Lock buffer_1
 
-    // Store the result in  buffer_2
+        // Read from buffer_1
+        int value = buffer_1[out1];
+        out1 = (out1 + 1) % SIZE; // Update
+        count1--;
 
+        pthread_mutex_unlock(&lockProd); // Unlock buffer_1
+        sem_post(&empty1); // Signal that buffer 1 has space
+
+        // Fibonacci number
+        int fib = fibo(value);
+
+        sem_wait(&empty2); // Wait if buffer_2 is full
+        pthread_mutex_lock(&lockCons); // Lock buffer_2
+
+        // Store the result in  buffer_2
+        buffer_2[in2] = fib;
+        in2 = (in2 + 1) % SIZE; // Update
+        count2++;
+
+        pthread_mutex_unlock(&lockConsProd); // Unlock buffer_2
+        sem_post(&full2); // Signal that buffer_2 is not empty
+    }
 }
 
 void *thread_consumer(void *arg){
+    while(1){
+        sem_wait(&full2); // Wait if buffer_2 is empty
+        pthread_mutex_lock(&lockCons); // Lock buffer_2
 
-    // Read  from  buffer_2 
+        // Read  from  buffer_2
+        int value = buffer_2[out2];
+        out2 = (out2 + 1) % SIZE; // Update
+        count2--;
 
-    // Print the final computed values to the standard output
+        pthread_mutex_unlock(&lockCons); // Unlock buffer_2
+        sem_post(&empty2); // Signal that buffer_2 has space
+
+        // Print the final computed values to the standard output
+        printf("Fibonacci: %d\n", value);
+    }
+    
 
 }
 
@@ -97,7 +150,9 @@ int fib(int n){
 int main(int argc, char* argv[]){
 
     // Inicializamos el lock y las dos condiciones
-    pthread_mutex_init(&lock, NULL);
+    pthread_mutex_init(&lockProd, NULL);
+    pthread_mutex_init(&lockConsProd, NULL);
+    pthread_mutex_init(&lockCons, NULL);
     //pthread_cond_init(&condA, NULL);
     //pthread_cond_init(&condB, NULL);
     
