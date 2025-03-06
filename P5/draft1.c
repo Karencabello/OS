@@ -71,11 +71,13 @@ void* consumer1(void* arg) {
         sem_wait(&buff2Free); 
         fibBuffer[countBuff2] = fib_num;
         countBuff2++;
+        /*
         if(countBuff2 == SIZE) {
             pthread_cond_signal(&readingPaused);
         }
         pthread_mutex_unlock(&lockCons1);
         sem_post(&buff2Filled);
+        */
     }   
 }
 
