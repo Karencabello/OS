@@ -49,7 +49,6 @@ void* producer(void* arg) {
     while(1) {
         // add one value to prodBuffer
         int x = rand() % 10; 
-        printf("value: %d\n", x);
         sem_wait(&buff1Free); 
         pthread_mutex_lock(&lockProd);
         prodBuffer[countBuff1] = x;
@@ -66,7 +65,6 @@ void* consumer1(void* arg) {
         sem_wait(&buff1Filled); // decrements
         pthread_mutex_lock(&lockCons1);
         int fib_num = fib(prodBuffer[countBuff1-1]);
-        printf("value transformed: %d\n", fib_num);
         countBuff1--;
         sem_post(&buff1Free); // increments
 
@@ -88,10 +86,19 @@ void* consumer2(void* arg) {
             pthread_cond_wait(&readingPaused, &lockCons2);
         }
         else{
+            printf("Prod Buffer \n");
+            for(int i=0; i<SIZE; i++){
+                printf("%d ", prodBuffer[i]);
+            }
+
+            printf("\n");
+
+            printf("Fib Buffer \n");
             for(int i=0; i<SIZE; i++){
                 printf("%d ", fibBuffer[i]);
     
             }
+            printf("\n");
             pthread_mutex_unlock(&lockCons2);
         }
     }
