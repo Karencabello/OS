@@ -95,13 +95,13 @@ void *thread_consumer_producer(void *arg){
         sem_post(&empty1); // Signal that buffer 1 has space
 
         // Fibonacci number
-        int fib = fibo(value);
+        int fibo = fib(value);
 
         sem_wait(&empty2); // Wait if buffer_2 is full
-        pthread_mutex_lock(&lockCons); // Lock buffer_2
+        pthread_mutex_lock(&lockConsProd); // Lock buffer_2
 
         // Store the result in  buffer_2
-        buffer_2[in2] = fib;
+        buffer_2[in2] = fibo;
         in2 = (in2 + 1) % SIZE; // Update
         count2++;
 
@@ -149,12 +149,14 @@ int fib(int n){
 
 int main(int argc, char* argv[]){
 
-    // Inicializamos el lock y las dos condiciones
+    // Inicializamos el lock y semaforos
     pthread_mutex_init(&lockProd, NULL);
     pthread_mutex_init(&lockConsProd, NULL);
     pthread_mutex_init(&lockCons, NULL);
-    //pthread_cond_init(&condA, NULL);
-    //pthread_cond_init(&condB, NULL);
+    sem_init(&full1, 0, 0);
+    sem_init(&empty1, 0, SIZE);
+    sem_init(&full2, 0, 0);
+    sem_init(&empty2, 0, SIZE);
     
     pthread_t thread_prod[NUM_THREADS], thread_cons_prod[NUM_THREADS], thread_cons[NUM_THREADS];
     
@@ -187,12 +189,15 @@ int main(int argc, char* argv[]){
     
 
     // Clean up
-    pthread_mutex_destroy(&lock);
-    //pthread_cond_destroy(&condA);
-    //pthread_cond_destroy(&condB);
-    
-    return 0;
+    pthread_mutex_destroy(&lockProd);
+    pthread_mutex_destroy(&lockConsProd);
+    pthread_mutex_destroy(&lockCons);
+    sem_destroy(&full1);
+    sem_destroy(&empty1);
+    sem_destroy(&full2);
+    sem_destroy(&empty2);
 
+    return 0;
 }
 
 /* FALTA: 
