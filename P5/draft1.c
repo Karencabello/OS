@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
-#include "semaphore.h"
+#include <semaphore.h>
 
 
 #define SIZE 10
@@ -36,11 +36,10 @@ int fib(int n) {
     int fib_i_1 = 1;
     int fib_i_2 = 0;
     int fib_i = 1;
-    for (int i = 1; i < n; ++i){
-        int aux = fib_i_1 + fib_i_2;
+    for (int i = 2; i <= n; ++i) {
+        fib_i = fib_i_1 + fib_i_2;
         fib_i_2 = fib_i_1;
         fib_i_1 = fib_i;
-        fib_i = aux;
     }
     return fib_i;
 }
@@ -72,6 +71,9 @@ void* consumer1(void* arg) {
         sem_wait(&buff2Free); 
         fibBuffer[countBuff2] = fib_num;
         countBuff2++;
+        if(countBuff2 == SIZE) {
+            pthread_cond_signal(&readingPaused);
+        }
         pthread_mutex_unlock(&lockCons1);
         sem_post(&buff2Filled);
     }   
