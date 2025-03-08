@@ -49,16 +49,25 @@ int fib(int n) {
 void* producer(void* arg) {
     int th = *((int*)arg);
     free(arg);
+    printf("producer (%d) created\n", th);
     int x;
     char n[16];
     while(1) {
+
         sem_wait(&buff1Free); // Espera espacio en buffer_1
+        if(done) {
+            printf("producer (%d )terminating\n", th);
+            break; // Terminar
+        }
         scanf("%s", n); // Lee entrada dek usuario
         if(strcmp(n, "EXIT") == 0) { // Usuario escribe EXIT, terminar
             done = 1;
             printf("producer (%d) terminating\n", th);
+            
+            for (int i = 0; i < NUM_TH_PROD+3; i++) {
+                sem_post(&buff1Free); // Desbloquea todos los producers
+            }
             for (int i = 0; i < NUM_TH_PC + NUM_TH_CONS; i++) {
-                
                 sem_post(&buff1Filled); // Desbloquea consumidores-productores
                 sem_post(&buff2Filled); // Desbloquea consumidores
             }
@@ -81,9 +90,8 @@ void* cons_prod(void* arg) {
         
         // consume one value from prodBuffer
         sem_wait(&buff1Filled); // Espera a que haya un valor en buffer_1
-        if(done == 1 && countBuff1 == 0 ) {
+        if(done) {
             printf("cons prod (%d )terminating\n", th);
-            //sem_post(&buff1Free);
             break; // Terminar
         }
         pthread_mutex_lock(&lockBuff1); // Bloquea buffer_1
@@ -112,9 +120,9 @@ void* consumer(void* arg) {
     while(1) {
         // consume one value from fibBuffer
         sem_wait(&buff2Filled); // decrements
-        if(done == 1 && countBuff2 == 0 ) {
+        if(done) {
             printf("cons (%d) terminating\n", th);
-            //sem_post(&buff2Free);
+            sem_post(&buff2Free);
             break; // Terminar
         }
         pthread_mutex_lock(&lockBuff2); //Lock buffer_2
