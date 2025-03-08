@@ -81,7 +81,7 @@ void* cons_prod(void* arg) {
         
         // consume one value from prodBuffer
         sem_wait(&buff1Filled); // Espera a que haya un valor en buffer_1
-        if(done) {
+        if(done == 1 && countBuff1 == 0 ) {
             printf("cons prod (%d )terminating\n", th);
             //sem_post(&buff1Free);
             break; // Terminar
@@ -112,7 +112,7 @@ void* consumer(void* arg) {
     while(1) {
         // consume one value from fibBuffer
         sem_wait(&buff2Filled); // decrements
-        if(done) {
+        if(done == 1 && countBuff2 == 0 ) {
             printf("cons (%d) terminating\n", th);
             //sem_post(&buff2Free);
             break; // Terminar
