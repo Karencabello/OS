@@ -1,3 +1,4 @@
+// IMPORTANT: in class it was commmented that the user introduced one number each time, and that each thread processed one number at a time.
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
