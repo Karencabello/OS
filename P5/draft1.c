@@ -52,7 +52,7 @@ void* producer(void* arg) {
     char n[16];
     while(1) {
         sem_wait(&buff1Free); // Espera espacio en buffer_1
-        scanf("%s", &n); // Lee entrada dek usuario
+        scanf("%s", n); // Lee entrada dek usuario
         if(strcmp(n, "EXIT") == 0) { // Usuario escribe EXIT, terminar
             done = 1;
             for (int i = 0; i < NUM_TH_PC + NUM_TH_CONS; i++) {
