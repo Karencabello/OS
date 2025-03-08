@@ -45,12 +45,29 @@ int fib(int n) {
 
 void* producer(void* arg) {
     int th = *((int*)arg);
-    
+    free(arg);
     int x;
     char n[11];
     while(1) {
         sem_wait(&buff1Free); 
         scanf("%d", &x);
+        /*
+        scanf("%d", n);
+        if(strcmp(n, "EXIT") == 0) {
+            // hacer que termine el thread y todos los threads vivos
+        }
+        // si no, el código de antes
+        else {
+            x = atoi(n);
+            pthread_mutex_lock(&lockBuff1);
+            prodBuffer[countBuff1] = x;
+            printf("PRODUCER (%d)--> Add original: %d; Position: %d\n", th, x, countBuff1);
+            countBuff1++;
+            pthread_mutex_unlock(&lockBuff1);
+            sem_post(&buff1Filled);
+        
+        }
+        */
         pthread_mutex_lock(&lockBuff1);
         prodBuffer[countBuff1] = x;
         printf("PRODUCER (%d)--> Add original: %d; Position: %d\n", th, x, countBuff1);
@@ -58,12 +75,11 @@ void* producer(void* arg) {
         pthread_mutex_unlock(&lockBuff1);
         sem_post(&buff1Filled);
     }
-    printf("Producer (%d) finishing game\n", th);
-    free(arg);
 }
 
 void* cons_prod(void* arg) {
     int th = *((int*)arg);
+    free(arg);
     while(1) {
         // consume one value from prodBuffer
         sem_wait(&buff1Filled); // decrements
@@ -83,13 +99,13 @@ void* cons_prod(void* arg) {
         pthread_mutex_unlock(&lockBuff2);
         sem_post(&buff2Filled);
     }
-    free(arg);
 }
 
 void* consumer(void* arg) {
     // This function prints the fibonacci transformed array once it is full. 
     // We free the lock such that the next time it is filled, the other thread prints the array.
     int th = *((int*)arg);
+    free(arg);
     while(1) {
         // consume one value from fibBuffer
         sem_wait(&buff2Filled); // decrements
@@ -99,7 +115,6 @@ void* consumer(void* arg) {
         pthread_mutex_unlock(&lockBuff2);
         sem_post(&buff2Free); // increments
     }
-    free(arg);
 }
 
 int main(int argc, char* argv[]) {
