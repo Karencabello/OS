@@ -18,6 +18,8 @@ int fibBuffer[SIZE];
 int countBuff1 = 0;
 int countBuff2 = 0;
 
+int done = 0; // Para finalizar 
+
 pthread_mutex_t lockBuff1;
 pthread_mutex_t lockBuff2;
 sem_t buff1Free;
@@ -47,34 +49,26 @@ void* producer(void* arg) {
     int th = *((int*)arg);
     free(arg);
     int x;
-    char n[11];
+    char n[16];
     while(1) {
-        sem_wait(&buff1Free); 
-        scanf("%d", &x);
-        /*
-        scanf("%d", n);
-        if(strcmp(n, "EXIT") == 0) {
-            // hacer que termine el thread y todos los threads vivos
+        sem_wait(&buff1Free); // Espera espacio en buffer_1
+        scanf("%s", &n); // Lee entrada dek usuario
+        if(strcmp(n, "EXIT") == 0) { // Usuario escribe EXIT, terminar
+            done = 1;
+            for (int i = 0; i < NUM_TH_PC + NUM_TH_CONS; i++) {
+                sem_post(&buff1Filled); // Desbloquea consumidores-productores
+                sem_post(&buff2Filled); // Desbloquea consumidores
+            }
+            break;
         }
-        // si no, el código de antes
-        else {
-            x = atoi(n);
-            pthread_mutex_lock(&lockBuff1);
-            prodBuffer[countBuff1] = x;
-            printf("PRODUCER (%d)--> Add original: %d; Position: %d\n", th, x, countBuff1);
-            countBuff1++;
-            pthread_mutex_unlock(&lockBuff1);
-            sem_post(&buff1Filled);
-        
-        }
-        */
-        pthread_mutex_lock(&lockBuff1);
-        prodBuffer[countBuff1] = x;
-        printf("PRODUCER (%d)--> Add original: %d; Position: %d\n", th, x, countBuff1);
-        countBuff1++;
-        pthread_mutex_unlock(&lockBuff1);
-        sem_post(&buff1Filled);
+        x = atoi(n); // convierte entrada en int
+        pthread_mutex_lock(&lockBuff1); // Lock buffer_1
+        prodBuffer[countBuff1++] = x; // Guardamos en el buffer
+        printf("PRODUCER (%d)--> Add original: %d; Position: %d\n", th, x, countBuff1 - 1);
+        pthread_mutex_unlock(&lockBuff1); // Unlock buffer
+        sem_post(&buff1Filled); // Buffer_1 is not empty 
     }
+    return NULL;
 }
 
 void* cons_prod(void* arg) {
@@ -82,23 +76,24 @@ void* cons_prod(void* arg) {
     free(arg);
     while(1) {
         // consume one value from prodBuffer
-        sem_wait(&buff1Filled); // decrements
-        pthread_mutex_lock(&lockBuff1);
-        int fib_num = fib(prodBuffer[countBuff1-1]);
-        printf("CONS_PROD (%d) --> Transform fib: %d; Position: %d\n", th,fib_num, countBuff1-1);
-        countBuff1--;
-        pthread_mutex_unlock(&lockBuff1);
-        sem_post(&buff1Free); // increments
+        sem_wait(&buff1Filled); // Espera a que haya un valor en buffer_1
+        if(done) break; // Terminar
+        pthread_mutex_lock(&lockBuff1); // Bloquea buffer_1
+        int value = prodBuffer[--countBuff1]; // Obtiene valor en posición del buffer_1
+        //printf("CONS_PROD (%d) --> Transform fib: %d; Position: %d\n", th,fib_num, countBuff1-1);
+        pthread_mutex_unlock(&lockBuff1); // Desbloquea buffer_1
+        sem_post(&buff1Free); // Buffer_1 empty
 
         // add one value to fibBuffer
-        sem_wait(&buff2Free); 
-        pthread_mutex_lock(&lockBuff2);
-        fibBuffer[countBuff2] = fib_num;
-        printf("CONS_PROD (%d) --> Add fib: %d; Position; %d\n", *((int*)arg),fib_num, countBuff2);
-        countBuff2++;
-        pthread_mutex_unlock(&lockBuff2);
-        sem_post(&buff2Filled);
+        int fib_num = fib(value); // calcula fibonacci 
+        sem_wait(&buff2Free); // Espera espacio en el buffer 2
+        pthread_mutex_lock(&lockBuff2); // Bloquea buffer_2
+        fibBuffer[countBuff2++] = fib_num; // Almacena fibonacci en buffer_2
+        printf("CONS_PROD (%d) --> Add fib: %d; Position; %d\n",th ,fib_num, countBuff2 - 1);
+        pthread_mutex_unlock(&lockBuff2); // Desbloquea buffer_2
+        sem_post(&buff2Filled); // Buffer_2 not empty
     }
+    return NULL;
 }
 
 void* consumer(void* arg) {
@@ -109,19 +104,22 @@ void* consumer(void* arg) {
     while(1) {
         // consume one value from fibBuffer
         sem_wait(&buff2Filled); // decrements
-        pthread_mutex_lock(&lockBuff2);
-        printf("CONSUMER (%d)--> Consume fib: %d; Position: %d\n", th, fibBuffer[countBuff2-1], countBuff2-1);
-        countBuff2--;
+        if(done) break; // Terminar
+        pthread_mutex_lock(&lockBuff2); //Lock buffer_2
+        int value = fibBuffer[--countBuff2]; // Obtiene valor en posición del buffer
+        printf("CONSUMER (%d)--> Consume fib: %d; Position: %d\n", th, value, countBuff2-1);
         pthread_mutex_unlock(&lockBuff2);
         sem_post(&buff2Free); // increments
     }
+    return NULL;
 }
 
 int main(int argc, char* argv[]) {
-    printf("When you are done adding production inputs enter: DONE \n");
+    printf("When you are done adding production inputs enter: DONE \n"); //Cambiar done por exit
     srand(time(NULL));
     pthread_t thprod[NUM_TH_PROD], thcons_prod[NUM_TH_PC], thcons[NUM_TH_CONS];
 
+    // Inicializamos el lock y semaforos
     pthread_mutex_init(&lockBuff1, NULL);
     pthread_mutex_init(&lockBuff2, NULL);
     sem_init(&buff1Filled, 0, 0);
@@ -172,6 +170,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Clean up
     pthread_mutex_destroy(&lockBuff1);
     pthread_mutex_destroy(&lockBuff2);
     sem_destroy(&buff1Filled);
