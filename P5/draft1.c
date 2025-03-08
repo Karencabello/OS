@@ -81,7 +81,7 @@ void* cons_prod(void* arg) {
         if(done) break; // Terminar
         pthread_mutex_lock(&lockBuff1); // Bloquea buffer_1
         int value = prodBuffer[--countBuff1]; // Obtiene valor en posición del buffer_1
-        //printf("CONS_PROD (%d) --> Transform fib: %d; Position: %d\n", th,fib_num, countBuff1-1);
+        printf("CONS_PROD (%d) --> Transform fib: %d; Position: %d\n", th,fib_num, countBuff1-1);
         pthread_mutex_unlock(&lockBuff1); // Desbloquea buffer_1
         sem_post(&buff1Free); // Buffer_1 empty
 
