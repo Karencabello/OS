@@ -76,6 +76,20 @@ void* producer(void* arg) {
         if(strcmp(n, "EXIT") == 0) { // Usuario escribe EXIT, terminar
             done = 1;
             printf("producer (%d) terminating\n", th);
+
+            /* VERSIÓN TODO CON KILL
+            for (int i = 0; i < NUM_TH_PROD; i++) {
+                if(i != th) {
+                    pthread_kill(thprod[i], SIGTERM);
+                }
+            }
+            for (int i = 0; i < NUM_TH_PC; i++) {
+                pthread_kill(thcons_prod[i], SIGTERM);
+            }
+            for (int i = 0; i < NUM_TH_CONS; i++) {
+                pthread_kill(thcons[i], SIGTERM);
+            }
+            */
             for (int i = 0; i < NUM_TH_PROD; i++) {
                 if(i != th) {
                     pthread_kill(thprod[i], SIGTERM);
