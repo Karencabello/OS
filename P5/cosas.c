@@ -89,12 +89,7 @@ void* producer(void* arg) {
             for (int i = 0; i < NUM_TH_CONS; i++) {
                 pthread_kill(thcons[i], SIGTERM);
             }
-            */
-            for (int i = 0; i < NUM_TH_PROD; i++) {
-                if(i != th) {
-                    pthread_kill(thprod[i], SIGTERM);
-                }
-            }
+            pthread_exit(NULL);
         }
         x = atoi(n); // convierte entrada en int
         pthread_mutex_lock(&lockBuff1); // Lock buffer_1
