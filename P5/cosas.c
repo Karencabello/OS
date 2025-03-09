@@ -77,7 +77,7 @@ void* producer(void* arg) {
             done = 1;
             printf("producer (%d) terminating\n", th);
 
-            /* VERSIÓN TODO CON KILL
+            
             for (int i = 0; i < NUM_TH_PROD; i++) {
                 if(i != th) {
                     pthread_kill(thprod[i], SIGTERM);
@@ -95,15 +95,6 @@ void* producer(void* arg) {
                     pthread_kill(thprod[i], SIGTERM);
                 }
             }
-            
-            //for (int i = 0; i < NUM_TH_PROD+3; i++) {
-            //    sem_post(&buff1Free); // Desbloquea todos los producers
-            //}
-            for (int i = 0; i < NUM_TH_PC + NUM_TH_CONS; i++) {
-                sem_post(&buff1Filled); // Desbloquea consumidores-productores
-                sem_post(&buff2Filled); // Desbloquea consumidores
-            }
-            break;
         }
         x = atoi(n); // convierte entrada en int
         pthread_mutex_lock(&lockBuff1); // Lock buffer_1
